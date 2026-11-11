@@ -8,7 +8,7 @@
 
 [![Install Smoke Logo](https://img.shields.io/badge/Install_Smoke_Logo-one_click-2ea44f?style=for-the-badge&logo=tampermonkey&logoColor=white)](https://raw.githubusercontent.com/Virojet/Shell-Shockers-Smoke-Logo/main/Shell-Shockers-Smoke-Logo.user.js)
 
-[![Version](https://img.shields.io/badge/version-1.0.0-0E7697?style=flat-square)](./Shell-Shockers-Smoke-Logo.user.js)
+[![Version](https://img.shields.io/badge/version-1.0.1-0E7697?style=flat-square)](./Shell-Shockers-Smoke-Logo.user.js)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](./LICENSE)
 
 </div>
@@ -30,11 +30,11 @@ Open **Settings** ▸ the **third tab** (the screen and speaker icons). **Smoke 
 
 1. Press **Choose image** and pick a picture from your computer: a PNG, JPG, GIF, WebP or SVG under 8 MB. The small box shows what you picked.
 2. Tick **Show on grenade smoke**.
-3. Press **Confirm**.
+3. Press **Confirm**: the green button that appears next to the picture as soon as you change something. The game's own **Confirm** at the bottom of Settings does the same, so use whichever you can reach (on a small window the bottom of Settings can be off screen).
 
 Throw a grenade. The smoke of the blast carries your picture.
 
-Like the game's settings around it, a change is kept when you press **Confirm**. **Cancel** or the **X** leaves things as they were. **Reset to Defaults** switches the logo off and keeps your picture, so you can switch it on again. **Remove** forgets the picture.
+Like the game's settings around it, a change is kept when you press **Confirm**. **Cancel** or the **X** leaves things as they were. **Reset to Defaults** switches the logo off and keeps your picture, so you can switch it on again. **Remove** forgets the picture (press **Confirm** to keep that).
 
 If you have the [Mod Menu](https://github.com/Virojet/Shell-Shockers-Mod-Menu), Smoke Logo is in its list with an on and off switch and a shortcut to these settings.
 
@@ -64,7 +64,13 @@ Untick **Show on grenade smoke** and press **Confirm**, or switch the script off
 
 ## Changelog
 
-#### v1.0.0 — current
+#### v1.0.1 — current
+
+- **Confirm now always reachable.** Smoke Logo has its own **Confirm** button next to the picture, so a change can be kept even when the bottom of the Settings window is cut off (this happened on small or zoomed windows when other mods add settings to the same tab, which made the game's **Confirm** impossible to click).
+- The Smoke Logo block is smaller: it spans the tab's width, the heading and the tick box share a line, and the picture and buttons share another.
+- A short line next to the buttons says what to press next (and what went wrong, in red, if a picture can't be used).
+
+#### v1.0.0
 
 - First release: your own picture on the smoke of grenade and rocket blasts, on your screen only.
 

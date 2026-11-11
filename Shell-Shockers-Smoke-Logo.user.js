@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shell Shockers Smoke Logo
 // @namespace    https://github.com/Virojet
-// @version      1.0.0
+// @version      1.0.1
 // @description  Put your own picture on the smoke of grenade and rocket blasts. The puffs keep the game's shape, size and fade, and only you see it.
 // @author       Virojet
 // @license      MIT
@@ -92,7 +92,8 @@
 
 /* Smoke Logo: your own picture on the smoke of grenade and rocket blasts.
 
-   What you see: Settings > the speaker tab > Smoke Logo. Choose an image, tick the box, press Confirm. From then on the
+   What you see: Settings > the speaker tab > Smoke Logo. Choose an image, tick the box, press Confirm (the block has its own Confirm, so a short window
+   that cuts off the bottom of Settings does not matter). From then on the
    smoke of every grenade and rocket blast on your screen carries your picture. The puffs are exactly the game's: same
    shape, same size, same opacity, same fade, so the smoke hides and reveals exactly what it always did. Only the
    picture painted on the puffs changes, and only on your screen. Other players, the match and the server never know.
@@ -125,7 +126,7 @@
   "use strict";
   if (window.ssSmokeLogo) return;   // already running: Tampermonkey and the Mod Menu both started it
 
-  const VERSION = "1.0.0";
+  const VERSION = "1.0.1";
   const STORE = "ssSmokeLogo";
   // The game's particle atlas, as read from its code: one 2048 px canvas of 16 x 16 cells, 128 px each.
   const ATLAS = 2048, CELL = 128;
@@ -303,17 +304,21 @@
 
   /* ---- Settings > the speaker tab > Smoke Logo ---- */
   const CELL_ID = "ss-smoke-logo-cell";
+  // The cell is kept short: it spans the grid's width, the heading and the tick box share a line, and the picture and the
+  // buttons share another. Other mods add cells to this tab too, and a Settings popup taller than the window pushes the
+  // game's Confirm button out of reach (the popup is centred, so it is cut off at the top and at the bottom). The cell also
+  // has a Confirm of its own, so keeping a change never depends on the bottom of the popup being on screen.
   const CSS = `
-#${CELL_ID} { min-width: 0; }
-#${CELL_ID} .sssl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; }
-#${CELL_ID} .sssl-buttons { display: flex; flex-wrap: wrap; gap: 0.5em; min-width: 0; }
+#${CELL_ID} { min-width: 0; grid-column: 1 / -1; }
+#${CELL_ID} .sssl-head { display: flex; flex-wrap: wrap; align-items: center; column-gap: 1em; }
+#${CELL_ID} .sssl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; margin-top: 0.3em; }
 #${CELL_ID} .ss_button, #${CELL_ID} label { flex: none; }
-#${CELL_ID} .sssl-preview { flex: none; box-sizing: border-box; width: 4.4em; height: 4.4em; border-radius: 0.4em; overflow: hidden; display: flex; align-items: center; justify-content: center;
+#${CELL_ID} .sssl-preview { flex: none; box-sizing: border-box; width: 3em; height: 3em; border-radius: 0.4em; overflow: hidden; display: flex; align-items: center; justify-content: center;
   border: 0.12em solid var(--ss-blue3, #04a2d1); background: #8d99a3 conic-gradient(#aab4bc 25%, #8d99a3 0 50%, #aab4bc 0 75%, #8d99a3 0) 0 0 / 1.1em 1.1em; }
 #${CELL_ID} .sssl-preview img { display: block; width: 100%; height: 100%; object-fit: contain; }
-#${CELL_ID} .sssl-preview img[hidden], #${CELL_ID} .sssl-empty[hidden] { display: none; }
-#${CELL_ID} .sssl-empty { text-align: center; padding: 0.2em; color: var(--ss-blue5, #0a4a63); }
-#${CELL_ID} .sssl-note { margin: 0; min-height: 1.2em; }
+#${CELL_ID} .sssl-preview img[hidden], #${CELL_ID} .sssl-empty[hidden], #${CELL_ID} .sssl-confirm[hidden], #${CELL_ID} .sssl-note:empty { display: none; }
+#${CELL_ID} .sssl-empty { text-align: center; padding: 0.1em; font-size: 0.8em; line-height: 1.1; color: var(--ss-blue5, #0a4a63); }
+#${CELL_ID} .sssl-note { flex: 1 1 12em; min-width: 0; margin: 0; font-size: 0.9em; }
 #${CELL_ID} .sssl-note.sssl-bad { color: var(--ss-red, #d15354); }`;
   let ui = null, pending = null;
 
@@ -323,14 +328,17 @@
     if (text != null) e.textContent = text;
     return e;
   }
-  const NOTE = "Only you see it. The smoke keeps its shape and fade.";
   const sound = name => { try { window.BAWK?.play?.(name); } catch { /* sounds aren't ready */ } };
-  function say(text) {
+  // Is there anything in the controls that is not saved yet?
+  const changed = () => !!pending && (pending.image !== saved.image || pending.enabled !== saved.enabled);
+  // The one short line next to the buttons: what went wrong (red), what was done, or what to press next. It is empty the rest
+  // of the time and then takes no room.
+  function say(text, ok) {
     if (!ui) return;
-    ui.note.textContent = text || NOTE;
-    ui.note.classList.toggle("sssl-bad", !!text);
     clearTimeout(say.t);
-    if (text) say.t = setTimeout(() => say(""), 5000);
+    ui.msg = text ? { text, ok: !!ok } : null;
+    if (text) say.t = setTimeout(() => { if (ui) { ui.msg = null; refresh(); } }, ok ? 3000 : 5000);
+    refresh();
   }
   function injectUI() {
     const grid = document.querySelector("#settings_misc > .display-grid");
@@ -343,11 +351,11 @@
     const onLabel = el("label", "ss_checkbox label", "Show on grenade smoke ");
     onLabel.title = "Puts your picture on the smoke of grenade and rocket blasts, on your screen only. The puffs keep the game's shape, size, opacity and fade.";
     onLabel.append(on, el("span", "checkmark"));
-    const onRow = el("div", "nowrap");
-    onRow.append(onLabel);
+    const head = el("div", "sssl-head");
+    head.append(el("h3", "margin-bottom-none h-short", "Smoke Logo"), onLabel);
     const img = el("img");
     img.alt = "Your smoke logo";
-    const empty = el("span", "sssl-empty text_blue4", "No image");
+    const empty = el("span", "sssl-empty text_blue4", "None");
     const preview = el("div", "sssl-preview");
     preview.append(img, empty);
     const pick = el("button", "ss_button btn_blue bevel_blue btn_sm", "Choose image");
@@ -356,15 +364,17 @@
     const remove = el("button", "ss_button btn_red bevel_red btn_sm", "Remove");
     remove.type = "button";
     remove.title = "Forget the picture.";
+    const confirm = el("button", "ss_button btn_green bevel_green btn_sm sssl-confirm", "Confirm");
+    confirm.type = "button";
+    confirm.hidden = true;
+    confirm.title = "Keep these Smoke Logo changes now. The game's own Confirm at the bottom of Settings does the same.";
     const file = el("input");
     Object.assign(file, { type: "file", accept: "image/*", hidden: true });
-    const note = el("p", "text_blue4 sssl-note", NOTE);
+    const note = el("p", "text_blue4 sssl-note");
     note.setAttribute("role", "status");
-    const buttons = el("div", "sssl-buttons");
-    buttons.append(pick, remove);
     const row = el("div", "sssl-row");
-    row.append(preview, buttons);
-    cell.append(el("h3", "margin-bottom-none h-short", "Smoke Logo"), onRow, row, note, file);
+    row.append(preview, pick, remove, confirm, note);
+    cell.append(head, row, file);
     grid.append(cell);
 
     if (!document.getElementById(CELL_ID + "-style")) {
@@ -376,11 +386,12 @@
     on.addEventListener("change", () => { sound("ui_onchange"); pending.enabled = on.checked && !!pending.image; refresh(); });
     pick.addEventListener("click", () => { sound("ui_click"); file.click(); });
     remove.addEventListener("click", () => { sound("ui_click"); pending.image = ""; pending.enabled = false; say(""); refresh(); });
+    confirm.addEventListener("click", () => { sound("ui_click"); keep(); });
     file.addEventListener("change", () => { take(file.files && file.files[0]); file.value = ""; });
 
     // The popup opening or closing puts the saved settings back in the controls, so a change only stays if Confirm
     // saved it (Cancel, the X and Esc all leave things as they were).
-    const me = { cell, on, img, empty, pick, remove, note, io: null, shown: null };
+    const me = { cell, on, img, empty, pick, remove, confirm, note, msg: null, io: null, shown: null };
     me.io = new IntersectionObserver(entries => {
       const shown = entries[entries.length - 1].isIntersecting;
       if (ui !== me || shown === me.shown) return;
@@ -406,13 +417,23 @@
   }
   function refresh() {
     if (!ui) return;
-    const p = pending || saved;
+    const p = pending || saved, dirty = changed(), m = ui.msg;
     ui.on.checked = p.enabled;
     ui.on.disabled = !p.image;
     ui.remove.disabled = !p.image;
     ui.img.hidden = !p.image;
     ui.empty.hidden = !!p.image;
-    if (p.image) ui.img.src = p.image; else ui.img.removeAttribute("src");
+    if (!p.image) ui.img.removeAttribute("src"); else if (ui.img.getAttribute("src") !== p.image) ui.img.src = p.image;
+    ui.confirm.hidden = !dirty;
+    ui.note.textContent = m ? m.text : dirty ? (p.image ? "Press Confirm to keep this." : "Press Confirm to remove it.") : "";
+    ui.note.classList.toggle("sssl-bad", !!m && !m.ok);
+  }
+  // The cell's own Confirm: keeps what is in the controls right now, the same as the game's Confirm does through onClick().
+  function keep() {
+    if (!ui || !changed()) return;
+    save(pending);
+    revert({ ...saved });
+    say("Saved.", true);
   }
 
   // A picked file becomes a 128 px square PNG: the whole picture, with transparent margins, kept in pending until Confirm.
