@@ -8,8 +8,9 @@
 
 [![Install Smoke Logo](https://img.shields.io/badge/Install_Smoke_Logo-one_click-2ea44f?style=for-the-badge&logo=tampermonkey&logoColor=white)](https://raw.githubusercontent.com/Virojet/Shell-Shockers-Smoke-Logo/main/Shell-Shockers-Smoke-Logo.user.js)
 
-[![Version](https://img.shields.io/badge/version-1.0.1-0E7697?style=flat-square)](./Shell-Shockers-Smoke-Logo.user.js)
+[![Version](https://img.shields.io/badge/version-1.0.2-0E7697?style=flat-square)](./Shell-Shockers-Smoke-Logo.user.js)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)](./LICENSE)
+[![Installs](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fabacus.jasoncameron.dev%2Fget%2Fvirojet-smoke-logo%2Finstalls&query=%24.value&label=installs&color=2ea44f&style=flat-square)](#privacy)
 
 </div>
 
@@ -59,12 +60,16 @@ Untick **Show on grenade smoke** and press **Confirm**, or switch the script off
 
 ## Privacy
 
-- **Nothing is sent anywhere.** The script makes no network requests at all, not even an install count.
+- **Install count only.** The first time it runs, one anonymous hit goes to a public counter ([Abacus](https://abacus.jasoncameron.dev)) so the installs badge above stays current. No picture, settings, names or IDs. It's sent once per browser; the `ssSmokeLogo-install-counted` key in site storage remembers it. That's the only network request the script makes.
 - **Your picture** is read in your browser when you pick it, shrunk there, and kept in this site's local storage under `ssSmokeLogo`, together with the on/off switch. Clearing the site's data, or **Remove**, deletes it.
 
 ## Changelog
 
-#### v1.0.1 — current
+#### v1.0.2 — current
+
+- **Install count.** An installs badge at the top of this page. The script sends one anonymous hit to a public counter the first time it runs in a browser, and nothing else (see [Privacy](#privacy)).
+
+#### v1.0.1
 
 - **Confirm now always reachable.** Smoke Logo has its own **Confirm** button next to the picture, so a change can be kept even when the bottom of the Settings window is cut off (this happened on small or zoomed windows when other mods add settings to the same tab, which made the game's **Confirm** impossible to click).
 - The Smoke Logo block is smaller: it spans the tab's width, the heading and the tick box share a line, and the picture and buttons share another.

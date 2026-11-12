@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shell Shockers Smoke Logo
 // @namespace    https://github.com/Virojet
-// @version      1.0.1
+// @version      1.0.2
 // @description  Put your own picture on the smoke of grenade and rocket blasts. The puffs keep the game's shape, size and fade, and only you see it.
 // @author       Virojet
 // @license      MIT
@@ -115,7 +115,8 @@
    a cell that is already in use.
 
    Your picture: shrunk to 128 px in your browser, kept in this site's localStorage under "ssSmokeLogo", never sent
-   anywhere. The script makes no network requests at all. Settings are per site (shellshock.io and a mirror keep
+   anywhere. The only network request is one anonymous install-count hit, once per browser (see the end of the file;
+   "ssSmokeLogo-install-counted" remembers it). Settings are per site (shellshock.io and a mirror keep
    separate pictures).
 
    Next to Better HUD: it hooks no Better HUD code. If a Better HUD build ever has its own Smoke Logo row, this script
@@ -126,7 +127,7 @@
   "use strict";
   if (window.ssSmokeLogo) return;   // already running: Tampermonkey and the Mod Menu both started it
 
-  const VERSION = "1.0.1";
+  const VERSION = "1.0.2";
   const STORE = "ssSmokeLogo";
   // The game's particle atlas, as read from its code: one 2048 px canvas of 16 x 16 cells, 128 px each.
   const ATLAS = 2048, CELL = 128;
@@ -545,4 +546,16 @@
     description: "Your own picture on the smoke of grenade and rocket blasts, on your screen only.",
     enable: start, disable: stop, openSettings,
   });
+
+  // Install count for the README badge: one anonymous hit to a public counter (Abacus), once per browser.
+  // Nothing about you, your picture or your settings is sent.
+  (function installCount() {
+    const KEY = "ssSmokeLogo-install-counted";
+    try { if (localStorage.getItem(KEY)) return; } catch { return; }
+    setTimeout(() => {
+      fetch("https://abacus.jasoncameron.dev/hit/virojet-smoke-logo/installs", { credentials: "omit", referrerPolicy: "no-referrer" })
+        .then(r => { if (r.ok) try { localStorage.setItem(KEY, "1"); } catch {} })
+        .catch(() => {});
+    }, 8000);
+  })();
 })();
