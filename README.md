@@ -31,7 +31,7 @@ Open **Settings** ▸ the **third tab** (the screen and speaker icons). **Smoke 
 
 1. Press **Choose image** and pick a picture from your computer: a PNG, JPG, GIF, WebP or SVG under 8 MB. The small box shows what you picked.
 2. Tick **Show on grenade smoke**.
-3. Press **Confirm**: the green button that appears next to the picture as soon as you change something. The game's own **Confirm** at the bottom of Settings does the same, so use whichever you can reach (on a small window the bottom of Settings can be off screen).
+3. Press **Confirm**: the green button that appears next to the picture as soon as you change something. The game's own **Confirm** at the bottom of Settings does the same. If Settings is taller than your window, scroll it.
 
 Throw a grenade. The smoke of the blast carries your picture.
 
@@ -65,7 +65,12 @@ Untick **Show on grenade smoke** and press **Confirm**, or switch the script off
 
 ## Changelog
 
-#### v1.0.2 — current
+#### v1.0.3 — current
+
+- **Settings scroll on small screens.** With Smoke Logo in it, the Settings window is held to the height of your browser window and scrolls, as it does with Gun Sounds. It used to run off the top and bottom on lower resolutions, cutting off the tabs and the game's **Confirm**.
+- **Under Kill Sounds:** if Kill Sounds loaded after Smoke Logo, Smoke Logo moves below it, so Kill Sounds stays beside Language instead of dropping to the bottom of the tab.
+
+#### v1.0.2
 
 - **Install count.** An installs badge at the top of this page. The script sends one anonymous hit to a public counter the first time it runs in a browser, and nothing else (see [Privacy](#privacy)).
 

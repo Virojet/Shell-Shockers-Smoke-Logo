@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shell Shockers Smoke Logo
 // @namespace    https://github.com/Virojet
-// @version      1.0.2
+// @version      1.0.3
 // @description  Put your own picture on the smoke of grenade and rocket blasts. The puffs keep the game's shape, size and fade, and only you see it.
 // @author       Virojet
 // @license      MIT
@@ -127,7 +127,7 @@
   "use strict";
   if (window.ssSmokeLogo) return;   // already running: Tampermonkey and the Mod Menu both started it
 
-  const VERSION = "1.0.2";
+  const VERSION = "1.0.3";
   const STORE = "ssSmokeLogo";
   // The game's particle atlas, as read from its code: one 2048 px canvas of 16 x 16 cells, 128 px each.
   const ATLAS = 2048, CELL = 128;
@@ -307,9 +307,11 @@
   const CELL_ID = "ss-smoke-logo-cell";
   // The cell is kept short: it spans the grid's width, the heading and the tick box share a line, and the picture and the
   // buttons share another. Other mods add cells to this tab too, and a Settings popup taller than the window pushes the
-  // game's Confirm button out of reach (the popup is centred, so it is cut off at the top and at the bottom). The cell also
-  // has a Confirm of its own, so keeping a change never depends on the bottom of the popup being on screen.
+  // game's Confirm button out of reach (the popup is centred, so it is cut off at the top and at the bottom). So, as with
+  // Gun Sounds, the popup is held to 88% of the window's height and scrolls. The cell also has a Confirm of its own, so
+  // keeping a change never depends on scrolling to the bottom of the popup.
   const CSS = `
+#settingsPopup:has(#${CELL_ID}) { max-height: 88vh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 #${CELL_ID} { min-width: 0; grid-column: 1 / -1; }
 #${CELL_ID} .sssl-head { display: flex; flex-wrap: wrap; align-items: center; column-gap: 1em; }
 #${CELL_ID} .sssl-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; margin-top: 0.3em; }
@@ -507,6 +509,16 @@
     if (standDown) return;
     if (wanted()) { if (!hooked || !inChain(chain) || (spriteProto() || chain.proto) !== chain.proto) { hooked = false; hook(); } } else if (hooked) unhook();
     if (!ui || !ui.cell.isConnected) injectUI();
+    else keepBelowKillSounds();
+  }
+  // Kill Sounds takes one column, beside Language; this cell takes the whole row. A Kill Sounds from before 1.2.3 adds
+  // itself at the end, so if it came in after this cell it would sit below it and leave a gap beside Language. Then this
+  // cell moves to the end, under it.
+  function keepBelowKillSounds() {
+    const kill = document.getElementById("ss-kill-sounds");
+    if (kill && kill.parentNode === ui.cell.parentNode && ui.cell.compareDocumentPosition(kill) & Node.DOCUMENT_POSITION_FOLLOWING) {
+      ui.cell.parentNode.append(ui.cell);
+    }
   }
   function start() {
     if (running) return;
